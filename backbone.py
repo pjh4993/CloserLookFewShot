@@ -371,6 +371,28 @@ class ResNet(nn.Module):
         out = self.trunk(x)
         return out
 
+class CTMblock(nn.Module):
+    def __init__(self, indim, outdim, flatten=False):
+        super(CTMblock,self).__init__()
+        trunk = [SimpleBlock(indim, outdim, False)]
+
+        if flatten:
+            avgpool = nn.AvgPool2d(7)
+            trunk.append(avgpool)
+            trunk.append(Flatten())
+            self.outdim = outdim
+        else:
+            self.outdim = [outdim, 7, 7]
+
+        self.trunk = nn.Sequential(*trunk)
+
+    def forward(self, x):
+        out = self.trunk(x)
+        return out
+        
+
+
+
 def Conv4():
     return ConvNet(4)
 

@@ -14,6 +14,7 @@ from data.datamgr import SimpleDataManager, SetDataManager
 from methods.baselinetrain import BaselineTrain
 from methods.baselinefinetune import BaselineFinetune
 from methods.protonet import ProtoNet
+from methods.CTM import CTM
 from methods.matchingnet import MatchingNet
 from methods.relationnet import RelationNet
 from methods.maml import MAML
@@ -112,7 +113,7 @@ if __name__=='__main__':
         elif params.method == 'baseline++':
             model           = BaselineTrain( model_dict[params.model], params.num_classes, loss_type = 'dist')
 
-    elif params.method in ['protonet','matchingnet','relationnet', 'relationnet_softmax', 'maml', 'maml_approx']:
+    elif params.method in ['CTM', 'protonet','matchingnet','relationnet', 'relationnet_softmax', 'maml', 'maml_approx']:
         n_query = max(1, int(16* params.test_n_way/params.train_n_way)) #if test_n_way is smaller than train_n_way, reduce n_query to keep batch size small
  
         train_few_shot_params    = dict(n_way = params.train_n_way, n_support = params.n_shot) 
@@ -124,7 +125,9 @@ if __name__=='__main__':
         val_loader              = val_datamgr.get_data_loader( val_file, aug = False) 
         #a batch for SetDataManager: a [n_way, n_support + n_query, dim, w, h] tensor        
 
-        if params.method == 'protonet':
+        if params.method == 'CTM':
+            model           = CTM(model_dict[params.model], **train_few_shot_params)
+        elif params.method == 'protonet':
             model           = ProtoNet( model_dict[params.model], **train_few_shot_params )
         elif params.method == 'matchingnet':
             model           = MatchingNet( model_dict[params.model], **train_few_shot_params )
@@ -161,6 +164,7 @@ if __name__=='__main__':
     if not params.method  in ['baseline', 'baseline++']: 
         params.checkpoint_dir += '_%dway_%dshot' %( params.train_n_way, params.n_shot)
 
+    print(params.checkpoint_dir)
     if not os.path.isdir(params.checkpoint_dir):
         os.makedirs(params.checkpoint_dir)
 
